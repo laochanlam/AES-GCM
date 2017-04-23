@@ -41,14 +41,16 @@ int main(){
     int64_t *dst2 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
     int64_t *dst3 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
     int64_t *dst4 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
+    double   cpu_time;
+    struct timespec start, end;
 
     for (int i = 0; i < 2; i++)
         random_number[i] = ( rand() % 922337203685477580 ) + 1;
 
+
+
     for (int i = 0; i < 2; i++)
         src[i] = random_number[i];
-
-
 
     __m128i I0 = _mm_loadu_si128((__m128i *)(src));
 
@@ -62,16 +64,50 @@ int main(){
     _mm_storeu_si128((__m128i *)(dst3), result3);
     _mm_storeu_si128((__m128i *)(dst4), result4);
 
+    assert( cl_mul(random_number[0],random_number[0]) == dst1[0]);
+    assert( cl_mul(random_number[1],random_number[0]) == dst2[0]);
+    assert( cl_mul(random_number[0],random_number[1]) == dst3[0]);
+    assert( cl_mul(random_number[1],random_number[1]) == dst4[0]);
 
 
-        printf("%lld\n", dst1[0]);
-        printf("%lld\n", dst2[0]);
-        printf("%lld\n", dst3[0]);
-        printf("%lld\n", dst4[0]);
 
-        assert( cl_mul(random_number[0],random_number[0]) == dst1[0]);
-        assert( cl_mul(random_number[1],random_number[0]) == dst2[0]);
-        assert( cl_mul(random_number[0],random_number[1]) == dst3[0]);
-        assert( cl_mul(random_number[1],random_number[1]) == dst4[0]);
+    clock_gettime(CLOCK_REALTIME, &start);
+    for (int j = 0; j < 1000; j++) {
+        for (int i = 0; i < 2; i++)
+            src[i] = random_number[i];
+        __m128i I0 = _mm_loadu_si128((__m128i *)(src));
+
+        __m128i result1 = _mm_clmulepi64_si128( I0, I0, 0x00 ); // [63:0] [63:0]
+        __m128i result3 = _mm_clmulepi64_si128( I0, I0, 0xF2 ); // [63:0] [127:64]
+        __m128i result2 = _mm_clmulepi64_si128( I0, I0, 0x01 ); // [127:64] [63:0]
+        __m128i result4 = _mm_clmulepi64_si128( I0, I0, 0xFF ); // [127:64] [127:64]
+
+        _mm_storeu_si128((__m128i *)(dst1), result1);
+        _mm_storeu_si128((__m128i *)(dst2), result2);
+        _mm_storeu_si128((__m128i *)(dst3), result3);
+        _mm_storeu_si128((__m128i *)(dst4), result4);
+    }
+    FILE *output = fopen("Function.txt", "a");
+    clock_gettime(CLOCK_REALTIME, &end);
+    cpu_time = diff_in_second(start, end);
+    fprintf(output, "%lf\n", cpu_time);
+    printf("%lf\n",cpu_time);
+
+
+
+    for (int j = 0; j < 1000; j++) {
+        for (int i = 0; i < 2; i++)
+            src[i] = random_number[i];
+        cl_mul(random_number[0],random_number[0]);
+        cl_mul(random_number[1],random_number[1]);
+        cl_mul(random_number[1],random_number[0]);
+        cl_mul(random_number[0],random_number[1]);
+    }
+    clock_gettime(CLOCK_REALTIME, &end);
+    cpu_time = diff_in_second(start, end);
+    output = fopen("Instrinics.txt", "a");
+    fprintf(output, "%lf\n", cpu_time);
+    printf("%lf\n",cpu_time);
+
 
 }
