@@ -3,6 +3,20 @@
 #include <stdlib.h>
 #include <wmmintrin.h>
 
+static uint cl_mul(uint a, uint b)
+{
+    uint r = 0;
+    while (b != 0)
+    {
+        if ((a & 1) != 0)
+            r ^= b;      // carryless addition is xor
+        a >>= 1;
+        b <<= 1;
+    }
+    return r;
+}
+
+
 static double diff_in_second(struct timespec t1, struct timespec t2)
 {
     struct timespec diff;
@@ -19,32 +33,45 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 
 int main(){
 
-    int *temp = NULL;
-    int *src1 = (int *) malloc(sizeof(int) * 4); //128-bit
-    int *src2 = (int *) malloc(sizeof(int) * 4); //128-bit
-    int *dst1 = (int *) malloc(sizeof(int) * 4); //128-bit
-    int *dst2 = (int *) malloc(sizeof(int) * 4); //128-bit
+    uint *temp = NULL;
+    uint *src1 = (uint *) malloc(sizeof(uint) * 4); //128-bit
+    uint *src2 = (uint *) malloc(sizeof(uint) * 4); //128-bit
+    uint *dst1 = (uint *) malloc(sizeof(uint) * 4); //128-bit
+    uint *dst2 = (uint *) malloc(sizeof(uint) * 4); //128-bit
+    uint *dst3 = (uint *) malloc(sizeof(uint) * 4); //128-bit
+    uint *dst4 = (uint *) malloc(sizeof(uint) * 4); //128-bit
 
     for (int i = 0; i < 4; i++) {
         src1[i] = i; // 0 1 2 3
         src2[i] = i; // 0 1 2 3
-    } 
-        // temp = src1 + ( i * sizeof(int) );
-        // *temp = i;
-        // Why doesn't it work?
-
-    // for (int i = 0; i < 4; i++) {
-        // int value = *(src1 + ( i * sizeof(int)));
-        // printf("%d ",value);
-    // }
+    }
 
     __m128i I0 = _mm_loadu_si128((__m128i *)(src1));
     __m128i I1 = _mm_loadu_si128((__m128i *)(src2));
-    // // __m128i T2 = _mm_clmulepi64()
-    _mm_storeu_si128((__m128i *)(dst1), I0);
-    _mm_storeu_si128((__m128i *)(dst2), I1);
+
+    __m128i result1 = _mm_clmulepi64_si128( I0, I1, 0x00 ); // [63:0] [63:0]
+    __m128i result2 = _mm_clmulepi64_si128( I0, I1, 0x01 ); // [127:64] [63:0]
+    __m128i result3 = _mm_clmulepi64_si128( I0, I1, 0xF2 ); // [63:0] [127:64]
+    __m128i result4 = _mm_clmulepi64_si128( I0, I1, 0xFF ); // [127:64] [127:64]
+
+    _mm_storeu_si128((__m128i *)(dst1), result1);
+    _mm_storeu_si128((__m128i *)(dst2), result2);
+    _mm_storeu_si128((__m128i *)(dst3), result3);
+    _mm_storeu_si128((__m128i *)(dst4), result4);
 
     for (int i = 0; i < 4; i++)
         printf("%d and ", dst1[i]);
+    printf("\n");
+    for (int i = 0; i < 4; i++)
+        printf("%d and ", dst2[i]);
+    printf("\n");
+    for (int i = 0; i < 4; i++)
+        printf("%d and ", dst3[i]);
+    printf("\n");
+    for (int i = 0; i < 4; i++)
+        printf("%d and ", dst4[i]);
+    printf("\n");
+    for (int i = 0; i < 4; i++)
+        printf("%d and ", cl_mul(i,i));
 
 }
