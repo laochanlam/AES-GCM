@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <wmmintrin.h>
 
-static uint cl_mul(uint a, uint b)
+static int64_t cl_mul(int64_t a, int64_t b)
 {
-    uint r = 0;
+    int64_t r = 0;
     while (b != 0)
     {
         if ((a & 1) != 0)
@@ -32,46 +32,47 @@ static double diff_in_second(struct timespec t1, struct timespec t2)
 
 
 int main(){
+    srand(time(NULL));
+    int64_t *temp = NULL;
+    int64_t random_number[2];
+    int64_t *src = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
+    int64_t *dst1 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
+    int64_t *dst2 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
+    int64_t *dst3 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
+    int64_t *dst4 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
 
-    uint *temp = NULL;
-    uint *src1 = (uint *) malloc(sizeof(uint) * 4); //128-bit
-    uint *src2 = (uint *) malloc(sizeof(uint) * 4); //128-bit
-    uint *dst1 = (uint *) malloc(sizeof(uint) * 4); //128-bit
-    uint *dst2 = (uint *) malloc(sizeof(uint) * 4); //128-bit
-    uint *dst3 = (uint *) malloc(sizeof(uint) * 4); //128-bit
-    uint *dst4 = (uint *) malloc(sizeof(uint) * 4); //128-bit
+    for (int i = 0; i < 2; i++)
+        random_number[i] = ( rand() % 100000000 ) + 1;
 
-    for (int i = 0; i < 4; i++) {
-        src1[i] = i; // 0 1 2 3
-        src2[i] = i; // 0 1 2 3
-    }
+    for (int i = 0; i < 2; i++)
+        src[i] = random_number[i];
 
-    __m128i I0 = _mm_loadu_si128((__m128i *)(src1));
-    __m128i I1 = _mm_loadu_si128((__m128i *)(src2));
 
-    __m128i result1 = _mm_clmulepi64_si128( I0, I1, 0x00 ); // [63:0] [63:0]
-    __m128i result2 = _mm_clmulepi64_si128( I0, I1, 0x01 ); // [127:64] [63:0]
-    __m128i result3 = _mm_clmulepi64_si128( I0, I1, 0xF2 ); // [63:0] [127:64]
-    __m128i result4 = _mm_clmulepi64_si128( I0, I1, 0xFF ); // [127:64] [127:64]
+
+    __m128i I0 = _mm_loadu_si128((__m128i *)(src));
+
+    __m128i result1 = _mm_clmulepi64_si128( I0, I0, 0x00 ); // [63:0] [63:0]
+    __m128i result2 = _mm_clmulepi64_si128( I0, I0, 0x01 ); // [127:64] [63:0]
+    __m128i result3 = _mm_clmulepi64_si128( I0, I0, 0xF2 ); // [63:0] [127:64]
+    __m128i result4 = _mm_clmulepi64_si128( I0, I0, 0xFF ); // [127:64] [127:64]
 
     _mm_storeu_si128((__m128i *)(dst1), result1);
     _mm_storeu_si128((__m128i *)(dst2), result2);
     _mm_storeu_si128((__m128i *)(dst3), result3);
     _mm_storeu_si128((__m128i *)(dst4), result4);
 
-    for (int i = 0; i < 4; i++)
-        printf("%d and ", dst1[i]);
+    for (int i = 0; i < 2; i++)
+        printf("%lld and ", dst1[i]);
     printf("\n");
-    for (int i = 0; i < 4; i++)
-        printf("%d and ", dst2[i]);
-    printf("\n");
-    for (int i = 0; i < 4; i++)
-        printf("%d and ", dst3[i]);
-    printf("\n");
-    for (int i = 0; i < 4; i++)
-        printf("%d and ", dst4[i]);
-    printf("\n");
-    for (int i = 0; i < 4; i++)
-        printf("%d and ", cl_mul(i,i));
+    // for (int i = 0; i < 4; i++)
+    //     printf("%d and ", dst2[i]);
+    // printf("\n");
+    // for (int i = 0; i < 4; i++)
+    //     printf("%d and ", dst3[i]);
+    // printf("\n");
+    // for (int i = 0; i < 4; i++)
+    //     printf("%d and ", dst4[i]);
+    // printf("\n");
+    printf("%lld", cl_mul(random_number[0],random_number[0]));
 
 }
