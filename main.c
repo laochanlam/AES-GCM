@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <wmmintrin.h>
+#include <assert.h>
 
 static int64_t cl_mul(int64_t a, int64_t b)
 {
@@ -42,7 +43,7 @@ int main(){
     int64_t *dst4 = (int64_t *) malloc(sizeof(int64_t) * 2); //128-bit
 
     for (int i = 0; i < 2; i++)
-        random_number[i] = ( rand() % 100000000 ) + 1;
+        random_number[i] = ( rand() % 922337203685477580 ) + 1;
 
     for (int i = 0; i < 2; i++)
         src[i] = random_number[i];
@@ -52,8 +53,8 @@ int main(){
     __m128i I0 = _mm_loadu_si128((__m128i *)(src));
 
     __m128i result1 = _mm_clmulepi64_si128( I0, I0, 0x00 ); // [63:0] [63:0]
-    __m128i result2 = _mm_clmulepi64_si128( I0, I0, 0x01 ); // [127:64] [63:0]
     __m128i result3 = _mm_clmulepi64_si128( I0, I0, 0xF2 ); // [63:0] [127:64]
+    __m128i result2 = _mm_clmulepi64_si128( I0, I0, 0x01 ); // [127:64] [63:0]
     __m128i result4 = _mm_clmulepi64_si128( I0, I0, 0xFF ); // [127:64] [127:64]
 
     _mm_storeu_si128((__m128i *)(dst1), result1);
@@ -61,18 +62,16 @@ int main(){
     _mm_storeu_si128((__m128i *)(dst3), result3);
     _mm_storeu_si128((__m128i *)(dst4), result4);
 
-    for (int i = 0; i < 2; i++)
-        printf("%lld and ", dst1[i]);
-    printf("\n");
-    // for (int i = 0; i < 4; i++)
-    //     printf("%d and ", dst2[i]);
-    // printf("\n");
-    // for (int i = 0; i < 4; i++)
-    //     printf("%d and ", dst3[i]);
-    // printf("\n");
-    // for (int i = 0; i < 4; i++)
-    //     printf("%d and ", dst4[i]);
-    // printf("\n");
-    printf("%lld", cl_mul(random_number[0],random_number[0]));
+
+
+        printf("%lld\n", dst1[0]);
+        printf("%lld\n", dst2[0]);
+        printf("%lld\n", dst3[0]);
+        printf("%lld\n", dst4[0]);
+
+        assert( cl_mul(random_number[0],random_number[0]) == dst1[0]);
+        assert( cl_mul(random_number[1],random_number[0]) == dst2[0]);
+        assert( cl_mul(random_number[0],random_number[1]) == dst3[0]);
+        assert( cl_mul(random_number[1],random_number[1]) == dst4[0]);
 
 }
