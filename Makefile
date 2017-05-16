@@ -6,9 +6,11 @@ EXEC = main calculate
 main: main.c
 	$(CC) $(CFLAGS_common) -o $@ $@.c
 
+# Data of Function Version
 Function.txt: main
 	./main
 
+# Data of Instrinics Version
 Instrinics.txt: main
 	./main
 

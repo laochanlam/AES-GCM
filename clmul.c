@@ -1,6 +1,11 @@
 #include <wmmintrin.h>
 #include <stdio.h>
 
+/** 
+    This is an example !
+*/
+
+
 int main()
 {
     __m128i a;
