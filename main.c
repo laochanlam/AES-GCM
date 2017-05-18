@@ -52,9 +52,9 @@ int main(){
 
     FILE *output = fopen("Instrinics.txt", "a");
 
-    for (int j = 0; j < 10000; j++) {
+    for (int j = 0; j < 100000; j++) {
         for (int i = 0; i < 2; i++)
-            src[i] = value;
+            src[i] = ( rand() % 922337203685477580 ) + 1;;
         clock_gettime(CLOCK_REALTIME, &start);
 
         for (int k = 0; k < 10000; k++) {
@@ -72,7 +72,7 @@ int main(){
         }
 
         clock_gettime(CLOCK_REALTIME, &end);
-        value += 10000;
+
         fprintf(output, "%lld ",value);
         cpu_time = diff_in_second(start, end);
         fprintf(output, "%lf\n", cpu_time);
