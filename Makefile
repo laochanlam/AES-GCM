@@ -22,7 +22,7 @@ repeat: $(EXEC)
 		-e cache-misses,cache-references,instructions,cycles \
 		./main
 
-plot: output.txt
+plot: Instrinics.txt
 	gnuplot runtime.gp
 
 output.txt: calculate
