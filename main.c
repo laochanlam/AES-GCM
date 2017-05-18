@@ -87,7 +87,7 @@ int main(){
         _mm_storeu_si128((__m128i *)(dst3), result3);
         _mm_storeu_si128((__m128i *)(dst4), result4);
     }
-    FILE *output = fopen("Function.txt", "a");
+    FILE *output = fopen("Instrinics.txt", "a");
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time = diff_in_second(start, end);
     fprintf(output, "%lf\n", cpu_time);
@@ -105,7 +105,7 @@ int main(){
     }
     clock_gettime(CLOCK_REALTIME, &end);
     cpu_time = diff_in_second(start, end);
-    output = fopen("Instrinics.txt", "a");
+    output = fopen("Function.txt", "a");
     fprintf(output, "%lf\n", cpu_time);
     printf("%lf\n",cpu_time);
 

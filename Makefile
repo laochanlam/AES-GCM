@@ -14,7 +14,7 @@ Function.txt: main
 Instrinics.txt: main
 	./main
 
-calculate: calculate.c Function.txt Instrinics.txt
+calculate: calculate.c Function.txt Instrinics.txt repeat
 	$(CC) -o $@ $@.c
 
 repeat: $(EXEC)
